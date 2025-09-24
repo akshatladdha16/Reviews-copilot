@@ -6,10 +6,12 @@ import plotly.graph_objects as go
 from datetime import datetime
 import json
 import os
+from dotenv import load_dotenv
+load_dotenv() #streamlit takes secrets not env , need to define them in streamlit secrets. 
 
 # Configuration
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
-
+API_KEY="admin123"
 # Page configuration
 st.set_page_config(
     page_title="Reviews Copilot",
@@ -71,6 +73,10 @@ class ReviewsClient:
     
     def health_check(self):
         return self._make_request("/health")
+    
+    def get_locations(self):
+        """Fetch all unique locations"""
+        return self._make_request("/locations") 
     
     def get_reviews(self, location=None, sentiment=None, rating=None, page=1, page_size=20):
         params = {"page": page, "page_size": page_size}
@@ -162,12 +168,19 @@ def show_dashboard():
 
 def show_review_inbox():
     st.header("Review Inbox")
+    # Fetch available locations
+    locations_response = client.get_locations()
+    available_locations = ["All"] + (locations_response if locations_response else [])
     
     # Filters
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        location_filter = st.selectbox("Location", ["All", "NYC", "SF", "LA", "Chicago", "Miami"])
+        location_filter = st.selectbox(
+            "Filter by Location",
+            options=available_locations,
+            key="location_filter"
+        )
     
     with col2:
         sentiment_filter = st.selectbox("Sentiment", ["All", "positive", "negative", "neutral"])

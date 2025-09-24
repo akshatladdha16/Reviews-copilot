@@ -93,7 +93,23 @@ class Database:
             except Exception as e:
                 logger.error(f"Bulk insert failed: {str(e)}", exc_info=True)
                 raise
-
+    #adding unique locations to avoid manual entry in 
+    async def get_unique_locations(self) -> List[str]:
+        """Get all unique locations from reviews"""
+        async with self.pool.acquire() as conn:
+            try:
+                rows = await conn.fetch(
+                    """
+                    SELECT DISTINCT location 
+                    FROM reviews 
+                    WHERE location IS NOT NULL 
+                    ORDER BY location
+                    """
+                )
+                return [row['location'] for row in rows]
+            except Exception as e:
+                logger.error(f"Error fetching unique locations: {str(e)}")
+                raise
     async def get_review(self, review_id: int) -> Optional[dict]:
         """Get a single review by ID"""
         async with self.pool.acquire() as conn:
@@ -141,7 +157,15 @@ class Database:
             params.append((page - 1) * page_size)
             
             results = await conn.fetch(f'''
-                SELECT * FROM reviews 
+                SELECT id, 
+                    location, 
+                    rating, 
+                    text, 
+                    date::text as date,
+                    sentiment, 
+                    topic,
+                    created_at 
+                    FROM reviews 
                 WHERE {where_clause}
                 ORDER BY created_at DESC
                 LIMIT ${param_count - 1} OFFSET ${param_count}

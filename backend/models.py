@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime,date
 from enum import Enum
 
 class Sentiment(str, Enum):
@@ -15,6 +15,7 @@ class Topic(str, Enum):
     PRICE = "price"
     DELIVERY = "delivery"
     OTHER = "other"
+    # can add more topics as needed
 
 class ReviewBase(BaseModel):
     location: str = Field(..., description="Business location") ## need to be filled, no default value given from our side for authentic reviews 
@@ -30,7 +31,16 @@ class Review(ReviewBase):
     sentiment: Optional[Sentiment] = None
     topic: Optional[Topic] = None
     embedding: Optional[List[float]] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
+    
+    @field_validator('date', mode='before')
+    @classmethod
+    def validate_date(cls, v):
+        if isinstance(v, date):
+            return v.isoformat()
+        if isinstance(v, datetime):
+            return v.date().isoformat()
+        return v
 
     class Config:
         from_attributes = True # now pydantic allows the db model to accept the data in obbject format too not just dict. 

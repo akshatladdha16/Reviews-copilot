@@ -197,6 +197,16 @@ async def search_reviews(
         search_type=search_type,
         query=q
     )
+# all unique locations for filter queries in review inbox
+@app.get("/locations", response_model=List[str])
+async def get_locations(user: dict = Depends(get_user)):
+    """Get all unique locations from reviews"""
+    try:
+        locations = await database.get_unique_locations()
+        return locations
+    except Exception as e:
+        logger.error(f"Error fetching locations: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching locations")
 
 # Cache management endpoints (admin only)
 # @app.delete("/cache/clear", dependencies=[Depends(require_admin)])
