@@ -5,9 +5,6 @@ import groq
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Any
 import re
-# import cache
-import models
-# from cache import cached
 from models import Sentiment, Topic
 
 class AIService:
@@ -130,7 +127,7 @@ class AIService:
             
             response = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="mixtral-8x7b-32768",  # High-quality model for replies
+                model="openai/gpt-oss-20b",  # High-quality model for replies
                 max_tokens=150,
                 temperature=0.7,
                 stop=["\n\n"]
@@ -148,7 +145,7 @@ class AIService:
                 "tags": {
                     "sentiment": sentiment,
                     "topic": topic,
-                    "rating": rating
+                    "rating": str(rating) + "/5"
                 },
                 "reasoning_log": f"Generated using Groq AI. Sentiment: {sentiment}, Topic: {topic}"
             }
@@ -161,7 +158,7 @@ class AIService:
                 "tags": {
                     "sentiment": "neutral",
                     "topic": "other",
-                    "rating": rating
+                    "rating": str(rating) + "/5"
                 },
                 "reasoning_log": f"Fallback reply due to error: {str(e)}"
             }

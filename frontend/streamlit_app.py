@@ -335,6 +335,10 @@ def show_admin():
 
 def display_review_card(review):
     """Display a review in a card format"""
+    # Generate unique IDs for each button
+    suggest_btn_key = f"suggest_btn_{review['id']}_{review.get('location', '')}"
+    copy_btn_key = f"copy_btn_{review['id']}_{review.get('location', '')}"
+    
     sentiment_class = "positive-review" if review.get('sentiment') == 'positive' else "negative-review" if review.get('sentiment') == 'negative' else ""
     
     st.markdown(f'<div class="review-card {sentiment_class}">', unsafe_allow_html=True)
@@ -352,18 +356,18 @@ def display_review_card(review):
     with col3:
         st.write(f"**Review:** {review.get('text', 'N/A')}")
         
-        if st.button("Suggest Reply", key=f"btn_{review['id']}"):
+        if st.button("Suggest Reply", key=suggest_btn_key):
             with st.spinner("Generating reply..."):
                 suggestion = client.suggest_reply(review['id'])
             
             if suggestion:
-                st.text_area("Suggested Reply", suggestion.get('reply', ''), height=100)
+                st.text_area("Suggested Reply", suggestion.get('reply', ''), height=100, key=f"reply_{review['id']}")
                 
-                if st.button("Copy to Clipboard", key=f"copy_{review['id']}"):
+                if st.button("Copy to Clipboard", key=copy_btn_key):
                     st.code(suggestion.get('reply', ''))
     
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
 def display_review_detail(review):
     """Display detailed review view"""
     col1, col2 = st.columns(2)

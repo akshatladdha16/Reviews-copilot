@@ -6,6 +6,9 @@ from database import database
 from ai_service import ai_service
 # from cache import cached
 
+import logging
+logger = logging.getLogger(__name__)
+
 class SearchService:
     def __init__(self):
         self.tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_features=1000)
@@ -27,39 +30,46 @@ class SearchService:
     # @cached(expire=3600, key_prefix="tfidf_search")
     async def tfidf_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """Search using TF-IDF and cosine similarity"""
-        if not self.tfidf_matrix or not self.review_texts:
+        # Check if index needs to be built
+        if self.tfidf_matrix is None or len(self.review_texts) == 0:
             await self.build_tfidf_index()
         
-        if not self.review_texts:
+        if len(self.review_texts) == 0:
             return []
         
-        # Transform query to TF-IDF vector
-        query_vec = self.tfidf_vectorizer.transform([query])
+        try:
+            # Transform query to TF-IDF vector
+            query_vec = self.tfidf_vectorizer.transform([query])
+            
+            # Calculate cosine similarities
+            similarities = cosine_similarity(query_vec, self.tfidf_matrix).flatten()
+            
+            # Get top K results
+            indices = np.argsort(similarities)[-k:][::-1]
+            
+            # Get full review data for results
+            async with database.pool.acquire() as conn:
+                results = []
+                for idx in indices:
+                    if similarities[idx] > 0:  # Only include relevant results
+                        review_id = (await conn.fetchrow(
+                            'SELECT id FROM reviews WHERE text = $1', 
+                            self.review_texts[idx]
+                        ))['id']
+                        
+                        review = await conn.fetchrow(
+                            'SELECT * FROM reviews WHERE id = $1', 
+                            review_id
+                        )
+                        if review:
+                            results.append(dict(review))
+            
+            return results
+        except Exception as e:
+            logger.error(f"Error in TFIDF search: {str(e)}")
+            return []
         
-        # Calculate cosine similarities
-        similarities = cosine_similarity(query_vec, self.tfidf_matrix).flatten()
         
-        # Get top K results
-        indices = np.argsort(similarities)[-k:][::-1]
-        
-        # Get full review data for results
-        async with database.pool.acquire() as conn:
-            results = []
-            for idx in indices:
-                if similarities[idx] > 0:  # Only include relevant results
-                    review_id = (await conn.fetchrow(
-                        'SELECT id FROM reviews WHERE text = $1', 
-                        self.review_texts[idx]
-                    ))['id']
-                    
-                    review = await conn.fetchrow(
-                        'SELECT * FROM reviews WHERE id = $1', 
-                        review_id
-                    )
-                    results.append(dict(review))
-        
-        return results
-    
     # @cached(expire=3600, key_prefix="vector_search")
     async def vector_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """Search using vector embeddings"""
