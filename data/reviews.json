@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "location": "NYC",
+    "rating": 2,
+    "text": "Waited 40 min for pickup; staff seemed overwhelmed and uninterested in helping.",
+    "date": "2024-01-15"
+  },
+  {
+    "id": 2,
+    "location": "NYC",
+    "rating": 5,
+    "text": "Quick service and super friendly at checkout! The food was amazing too.",
+    "date": "2024-01-16"
+  },
+  {
+    "id": 3,
+    "location": "SF",
+    "rating": 3,
+    "text": "Food was good but order notes were completely ignored. Disappointing.",
+    "date": "2024-01-17"
+  },
+  {
+    "id": 4,
+    "location": "SF",
+    "rating": 1,
+    "text": "App kept crashing, couldn't place order. Very frustrating experience.",
+    "date": "2024-01-18"
+  },
+  {
+    "id": 5,
+    "location": "LA",
+    "rating": 4,
+    "text": "Clean store, decent prices, but parking was a bit tight. Overall good.",
+    "date": "2024-01-19"
+  },
+  {
+    "id": 6,
+    "location": "LA",
+    "rating": 2,
+    "text": "Delivery was late and items were missing. Poor quality control.",
+    "date": "2024-01-20"
+  },
+  {
+    "id": 7,
+    "location": "Chicago",
+    "rating": 5,
+    "text": "Excellent service! The staff went above and beyond to help us.",
+    "date": "2024-01-21"
+  },
+  {
+    "id": 8,
+    "location": "Miami",
+    "rating": 3,
+    "text": "Average experience. Food was okay but nothing special for the price.",
+    "date": "2024-01-22"
+  },
+  {
+    "id": 9,
+    "location": "NYC",
+    "rating": 4,
+    "text": "Great atmosphere and good food. Would recommend for casual dining.",
+    "date": "2024-01-23"
+  },
+  {
+    "id": 10,
+    "location": "SF",
+    "rating": 1,
+    "text": "Terrible customer service. Waited 1 hour for cold food. Never again.",
+    "date": "2024-01-24"
+  }
+]

@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+python-dotenv
+asyncpg
+pgvector
+sentence-transformers
+scikit-learn
+groq
+redis
+python-multipart
+pydantic
+aiofiles
+httpx
+python-jose
+passlib
+bcrypt
