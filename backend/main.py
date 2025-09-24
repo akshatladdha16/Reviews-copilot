@@ -4,17 +4,13 @@ from fastapi.responses import JSONResponse
 import logging
 from typing import List, Optional
 import json
-import aiofiles
 from datetime import datetime
 
 # from .database import database
 from database import database
-import models
 from models import *
 from search_rag import search_service
 import ai_service
-import auth
-import cache
 from ai_service import *
 from auth import require_admin, require_analytics, get_user
 from cache import cache
@@ -45,7 +41,7 @@ async def startup_event():
     # cache.init_redis()
     
     # Initialize database
-    await database.init()
+    await database.init() # custom async init function 
     
     # Build search index
     await search_service.build_tfidf_index()

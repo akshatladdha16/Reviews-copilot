@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import groq
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Any
@@ -10,7 +12,7 @@ from models import Sentiment, Topic
 
 class AIService:
     def __init__(self):
-        self.groq_client = groq.Groq(api_key='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')
+        self.groq_client = groq.Groq(api_key=os.getenv('GROQ_API_KEY'))
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         
         # Pre-defined topics for classification

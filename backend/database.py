@@ -14,7 +14,7 @@ class Database:
 # so we need to create a async init method to create connection pool 
     async def init(self):
         """Initialize database connection pool"""
-        self.pool = await asyncpg.create_pool('postgresql://neondb_owner:npg_YfiSU5P4COkI@ep-wild-scene-ad8ue4q8-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+        self.pool = await asyncpg.create_pool(os.getenv('POSTGRES_URI'))
         async with self.pool.acquire() as conn:
             await register_vector(conn) # now we can use vector type and store reviews embeddinnsg for semantic search
             await self._create_tables(conn)
