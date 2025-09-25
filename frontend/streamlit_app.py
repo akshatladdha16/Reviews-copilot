@@ -299,7 +299,7 @@ def show_search():
 def show_admin():
     st.header("Admin Panel")
     
-    tab1, tab2, tab3 = st.tabs(["Upload Reviews", "System Health", "Cache Management"])
+    tab1, tab2, tab3 = st.tabs(["Upload Reviews", "System Health"])
     
     with tab1:
         st.subheader("Upload Reviews")
@@ -325,13 +325,6 @@ def show_admin():
                 st.json(health)
             else:
                 st.error("System health check failed")
-    
-    with tab3:
-        st.subheader("Cache Management")
-        
-        if st.button("Clear Cache"):
-            # This would call a cache clearing endpoint
-            st.info("Cache cleared successfully")
 
 def display_review_card(review):
     """Display a review in a card format"""

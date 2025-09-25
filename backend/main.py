@@ -13,7 +13,7 @@ from search_rag import search_service
 import ai_service
 from ai_service import *
 from auth import require_admin, require_analytics, get_user
-from cache import cache
+
 
 app = FastAPI(
     title="Reviews Copilot API",
@@ -37,9 +37,6 @@ logger = logging.getLogger(__name__)
 # Startup event
 @app.on_event("startup")
 async def startup_event():
-    # Initialize cache
-    # cache.init_redis()
-    
     # Initialize database
     await database.init() # custom async init function 
     
@@ -207,15 +204,6 @@ async def get_locations(user: dict = Depends(get_user)):
     except Exception as e:
         logger.error(f"Error fetching locations: {str(e)}")
         raise HTTPException(status_code=500, detail="Error fetching locations")
-
-# Cache management endpoints (admin only)
-# @app.delete("/cache/clear", dependencies=[Depends(require_admin)])
-# async def clear_cache():
-#     """Clear all cache (admin only)"""
-#     # Note: This is a simplified implementation
-#     # In production, you might want more specific cache clearing
-#     cache.local_cache.clear()
-#     return {"message": "Cache cleared successfully"}
 
 # Error handlers
 @app.exception_handler(HTTPException)

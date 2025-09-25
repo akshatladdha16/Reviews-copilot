@@ -21,12 +21,10 @@ class AIService:
             Topic.DELIVERY: ['delivery', 'deliver', 'shipping', 'arrive', 'late', 'early', 'driver']
         }
     
-    # @cached(expire=86400, key_prefix="embedding")  # Cache for 24 hours
     def get_embedding(self, text: str) -> List[float]:
         """Generate embedding for text with caching"""
         return self.embedding_model.encode(text).tolist()
     
-    # @cached(expire=3600, key_prefix="sentiment")
     def analyze_sentiment(self, text: str) -> str:
         """Analyze sentiment using Groq"""
         try:
@@ -89,7 +87,6 @@ class AIService:
         
         return text
     
-    # @cached(expire=1800, key_prefix="reply")  # Cache for 30 minutes
     async def suggest_reply(self, review_text: str, rating: int, location: str) -> Dict[str, Any]:
         """Generate a suggested reply using Groq with safeguards"""
         try:

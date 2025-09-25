@@ -4,7 +4,6 @@ import numpy as np
 from typing import List, Dict, Any
 from database import database
 from ai_service import ai_service
-# from cache import cached
 
 import logging
 logger = logging.getLogger(__name__)
@@ -27,7 +26,6 @@ class SearchService:
         
         return len(self.review_texts)
     
-    # @cached(expire=3600, key_prefix="tfidf_search")
     async def tfidf_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """Search using TF-IDF and cosine similarity"""
         # Check if index needs to be built
@@ -70,7 +68,6 @@ class SearchService:
             return []
         
         
-    # @cached(expire=3600, key_prefix="vector_search")
     async def vector_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """Search using vector embeddings"""
         # Generate query embedding
