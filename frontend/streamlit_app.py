@@ -161,8 +161,8 @@ def show_dashboard():
     st.subheader("Recent Reviews")
     reviews = client.get_reviews(page_size=10)
     if reviews and reviews.get('data'):
-        for review in reviews['data'][:5]:
-            display_review_card(review)
+        for idx,review in enumerate(reviews['data']):
+            display_review_card(review,context="inbox",index=idx)
     else:
         st.info("No reviews found. Upload some reviews to get started.")
 
@@ -283,18 +283,22 @@ def show_search():
         search_query = st.text_input("Search reviews", placeholder="Enter keywords to search...")
     
     with col2:
-        search_type = st.selectbox("Search type", ["hybrid", "tfidf", "vector"])
+        search_type = st.selectbox("Search type", ["Hybrid", "Keywords:tfidf", "Semantic:Vector"])
     
-    if search_query:
-        results = client.search_reviews(search_query, search_type=search_type)
-        
-        if results and results.get('reviews'):
-            st.write(f"Found {len(results['reviews'])} similar reviews")
-            
-            for review in results['reviews']:
-                display_review_card(review)
+        if search_type == "Semantic:Vector":
+            results = client._make_request(f"/search?q={search_query}&type=Semantic:Vector")
+        elif search_type == "Keywords:tfidf":
+            results = client._make_request(f"/search?q={search_query}&type=Keywords:tfidf")
         else:
-            st.info("No similar reviews found.")
+            results = client._make_request(f"/search?q={search_query}&type=Hybrid")
+        
+        if results and 'reviews' in results:
+            st.subheader(f"Search Results ({len(results['reviews'])} found)")
+            for idx, review in enumerate(results['reviews']):
+                # Added index to make each review card unique in search context and we get suggestions for each reply separately
+                display_review_card(review, context="search", index=idx)
+        else:
+            st.info("No results found")
 
 def show_admin():
     st.header("Admin Panel")
@@ -326,13 +330,19 @@ def show_admin():
             else:
                 st.error("System health check failed")
 
-def display_review_card(review):
-    """Display a review in a card format"""
-    # Generate unique IDs for each button
-    suggest_btn_key = f"suggest_btn_{review['id']}_{review.get('location', '')}"
-    copy_btn_key = f"copy_btn_{review['id']}_{review.get('location', '')}"
+def display_review_card(review, context="inbox", index=0):
+    """Display a review in a card format with unique keys per context"""
+    # Generate unique keys for each button based on context and review
+    base_key = f"{context}_{review['id']}_{index}"
+    suggest_btn_key = f"suggest_btn_{base_key}"
+    copy_btn_key = f"copy_btn_{base_key}"
+    reply_area_key = f"reply_{base_key}"
     
-    sentiment_class = "positive-review" if review.get('sentiment') == 'positive' else "negative-review" if review.get('sentiment') == 'negative' else ""
+    sentiment_class = (
+        "positive-review" if review.get('sentiment') == 'positive' 
+        else "negative-review" if review.get('sentiment') == 'negative' 
+        else ""
+    )
     
     st.markdown(f'<div class="review-card {sentiment_class}">', unsafe_allow_html=True)
     
@@ -354,7 +364,12 @@ def display_review_card(review):
                 suggestion = client.suggest_reply(review['id'])
             
             if suggestion:
-                st.text_area("Suggested Reply", suggestion.get('reply', ''), height=100, key=f"reply_{review['id']}")
+                st.text_area(
+                    "Suggested Reply", 
+                    suggestion.get('reply', ''), 
+                    height=100, 
+                    key=reply_area_key
+                )
                 
                 if st.button("Copy to Clipboard", key=copy_btn_key):
                     st.code(suggestion.get('reply', ''))
