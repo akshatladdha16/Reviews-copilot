@@ -299,7 +299,7 @@ def show_search():
 def show_admin():
     st.header("Admin Panel")
     
-    tab1, tab2, tab3 = st.tabs(["Upload Reviews", "System Health"])
+    tab1, tab2= st.tabs(["Upload Reviews", "System Health"])
     
     with tab1:
         st.subheader("Upload Reviews")
