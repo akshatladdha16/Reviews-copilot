@@ -38,7 +38,7 @@ class AIService:
             
             response = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.3-70b-versatile",  # Fast and efficient model
+                model="llama-3.1-8b-instant",  #smaller Faster and efficient for classifciation task tahn 70b model  
                 max_tokens=10,
                 temperature=0.1
             )
