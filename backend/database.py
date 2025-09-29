@@ -193,48 +193,49 @@ class Database:
 
     async def get_analytics(self) -> dict:
         """Get analytics data for dashboard"""
-        async with self.pool.acquire() as conn:
-            # Sentiment counts
-            sentiment_results = await conn.fetch('''
-                SELECT sentiment, COUNT(*) as count 
-                FROM reviews 
-                WHERE sentiment IS NOT NULL 
-                GROUP BY sentiment
-            ''')
-            sentiment_counts = {row['sentiment']: row['count'] for row in sentiment_results}
-            
-            # Topic counts
-            topic_results = await conn.fetch('''
-                SELECT topic, COUNT(*) as count 
-                FROM reviews 
-                WHERE topic IS NOT NULL 
-                GROUP BY topic
-            ''')
-            topic_counts = {row['topic']: row['count'] for row in topic_results}
-            
-            # Location counts
-            location_results = await conn.fetch('''
-                SELECT location, COUNT(*) as count 
-                FROM reviews 
-                GROUP BY location
-            ''')
-            location_counts = {row['location']: row['count'] for row in location_results}
-            
-            # Rating distribution
-            rating_results = await conn.fetch('''
-                SELECT rating, COUNT(*) as count 
-                FROM reviews 
-                GROUP BY rating 
-                ORDER BY rating
-            ''')
-            rating_distribution = {row['rating']: row['count'] for row in rating_results}
-            
-            return {
-                'sentiment_counts': sentiment_counts,
-                'topic_counts': topic_counts,
-                'location_counts': location_counts,
-                'rating_distribution': rating_distribution
-            }
+        try:
+            async with self.pool.acquire() as conn:
+                #avg ratings
+                avg_rating = await conn.fetchval('''
+                    SELECT ROUND(AVG(rating)::numeric, 2)
+                    FROM reviews
+                    WHERE rating IS NOT NULL
+                ''')
+                # Sentiment counts
+                sentiment_results = await conn.fetch('''
+                    SELECT sentiment, COUNT(*) as count 
+                    FROM reviews 
+                    WHERE sentiment IS NOT NULL 
+                    GROUP BY sentiment
+                ''')
+                sentiment_counts = {row['sentiment']: row['count'] for row in sentiment_results}
+                
+                # Topic counts
+                topic_results = await conn.fetch('''
+                    SELECT topic, COUNT(*) as count 
+                    FROM reviews 
+                    WHERE topic IS NOT NULL 
+                    GROUP BY topic
+                ''')
+                topic_counts = {row['topic']: row['count'] for row in topic_results}
+                
+                # Location counts
+                location_results = await conn.fetch('''
+                    SELECT location, COUNT(*) as count 
+                    FROM reviews 
+                    GROUP BY location
+                ''')
+                location_counts = {row['location']: row['count'] for row in location_results}
+                
+                return {
+                    'average_rating': float(avg_rating) if avg_rating is not None else None,
+                    'sentiment_counts': dict(sentiment_counts),
+                    'topic_counts': dict(topic_counts),
+                    'location_counts': dict(location_counts)
+                }
+        except Exception as e:
+            logger.error(f"Error fetching analytics: {str(e)}")
+            raise
 
 # Database instance
 database = Database()

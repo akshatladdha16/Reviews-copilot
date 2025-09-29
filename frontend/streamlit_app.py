@@ -1,10 +1,8 @@
 import streamlit as st
 import requests
+import sys
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime
-import json
 import os
 from dotenv import load_dotenv
 load_dotenv() #streamlit takes secrets not env , need to define them in streamlit secrets. 
@@ -210,69 +208,149 @@ def show_review_inbox():
                 display_review_detail(review)
     else:
         st.info("No reviews match your filters.")
-
 def show_analytics():
     st.header("Analytics Dashboard")
     
-    analytics = client.get_analytics()
+    # Fetch analytics data
+    analytics = client._make_request("/analytics")
+    
     if not analytics:
-        st.error("Failed to load analytics data")
+        st.error("Failed to fetch analytics data")
         return
     
-    # Create tabs for different analytics views
-    tab1, tab2, tab3, tab4 = st.tabs(["Sentiment", "Topics", "Locations", "Ratings"])
+    # Create columns for metrics
+    col1, col2, col3 = st.columns(3)
     
-    with tab1:
-        st.subheader("Sentiment Analysis")
+    with col1:
+        total_reviews = sum(analytics.get('sentiment_counts', {}).values())
+        st.metric("Total Reviews", total_reviews)
+    
+    with col2:
+        # Fixed average rating calculation and display
+        avg_rating = analytics.get('average_rating')
+        if avg_rating is not None:
+            # Round to 1 decimal place and add star emoji
+            formatted_rating = f"{float(avg_rating):.1f} ⭐"
+            st.metric("Average Rating", formatted_rating)
+        else:
+            st.metric("Average Rating", "N/A")
+    
+    with col3:
+        locations = len(analytics.get('location_counts', {}))
+        st.metric("Total Locations", locations)
+    
+    # Create row for charts
+    chart1, chart2 = st.columns(2)
+    
+    with chart1:
+        # Convert sentiment data for plotting
         sentiment_data = analytics.get('sentiment_counts', {})
         if sentiment_data:
-            fig = px.pie(
+            # Create pie chart using graph_objects
+            fig = go.Figure(data=[go.Pie(
+                labels=list(sentiment_data.keys()),
                 values=list(sentiment_data.values()),
-                names=list(sentiment_data.keys()),
-                title="Review Sentiment Distribution"
+                hole=0.3
+            )])
+            fig.update_layout(
+                title="Review Sentiment Distribution",
+                showlegend=True
             )
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No sentiment data available")
     
-    with tab2:
-        st.subheader("Topic Analysis")
+    with chart2:
+        # Convert topic data for plotting
         topic_data = analytics.get('topic_counts', {})
         if topic_data:
-            fig = px.bar(
+            # Create bar chart using graph_objects
+            fig = go.Figure(data=[go.Bar(
                 x=list(topic_data.keys()),
-                y=list(topic_data.values()),
-                title="Review Topics Distribution"
+                y=list(topic_data.values())
+            )])
+            fig.update_layout(
+                title="Review Topics Distribution",
+                xaxis_title="Topic",
+                yaxis_title="Count"
             )
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No topic data available")
     
-    with tab3:
-        st.subheader("Location Analysis")
-        location_data = analytics.get('location_counts', {})
-        if location_data:
-            fig = px.bar(
-                x=list(location_data.keys()),
-                y=list(location_data.values()),
-                title="Reviews by Location"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No location data available")
+    # Location distribution
+    st.subheader("Reviews by Location")
+    location_data = analytics.get('location_counts', {})
+    if location_data:
+        # Create bar chart using graph_objects
+        fig = go.Figure(data=[go.Bar(
+            x=list(location_data.keys()),
+            y=list(location_data.values())
+        )])
+        fig.update_layout(
+            title="Reviews by Location",
+            xaxis_title="Location",
+            yaxis_title="Count"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+# def show_analytics():
+#     st.header("Analytics Dashboard")
     
-    with tab4:
-        st.subheader("Rating Distribution")
-        rating_data = analytics.get('rating_distribution', {})
-        if rating_data:
-            fig = px.bar(
-                x=list(rating_data.keys()),
-                y=list(rating_data.values()),
-                title="Rating Distribution"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No rating data available")
+#     analytics = client.get_analytics()
+#     if not analytics:
+#         st.error("Failed to load analytics data")
+#         return
+    
+#     # Create tabs for different analytics views
+#     tab1, tab2, tab3, tab4 = st.tabs(["Sentiment", "Topics", "Locations", "Ratings"])
+    
+#     with tab1:
+#         st.subheader("Sentiment Analysis")
+#         sentiment_data = analytics.get('sentiment_counts', {})
+#         if sentiment_data:
+#             fig = px.pie(
+#                 values=list(sentiment_data.values()),
+#                 names=list(sentiment_data.keys()),
+#                 title="Review Sentiment Distribution"
+#             )
+#             st.plotly_chart(fig, use_container_width=True)
+#         else:
+#             st.info("No sentiment data available")
+    
+#     with tab2:
+#         st.subheader("Topic Analysis")
+#         topic_data = analytics.get('topic_counts', {})
+#         if topic_data:
+#             fig = px.bar(
+#                 x=list(topic_data.keys()),
+#                 y=list(topic_data.values()),
+#                 title="Review Topics Distribution"
+#             )
+#             st.plotly_chart(fig, use_container_width=True)
+#         else:
+#             st.info("No topic data available")
+    
+#     with tab3:
+#         st.subheader("Location Analysis")
+#         location_data = analytics.get('location_counts', {})
+#         if location_data:
+#             fig = px.bar(
+#                 x=list(location_data.keys()),
+#                 y=list(location_data.values()),
+#                 title="Reviews by Location"
+#             )
+#             st.plotly_chart(fig, use_container_width=True)
+#         else:
+#             st.info("No location data available")
+    
+#     with tab4:
+#         st.subheader("Rating Distribution")
+#         rating_data = analytics.get('rating_distribution', {})
+#         if rating_data:
+#             fig = px.bar(
+#                 x=list(rating_data.keys()),
+#                 y=list(rating_data.values()),
+#                 title="Rating Distribution"
+#             )
+#             st.plotly_chart(fig, use_container_width=True)
+#         else:
+#             st.info("No rating data available")
 
 def show_search():
     st.header("Advanced Search")

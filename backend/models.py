@@ -51,10 +51,31 @@ class ReplySuggestion(BaseModel):
     reasoning_log: str
 
 class AnalyticsResponse(BaseModel):
-    sentiment_counts: Dict[str, int]
-    topic_counts: Dict[str, int]
-    location_counts: Dict[str, int]
-    rating_distribution: Dict[int, int]
+    average_rating: Optional[float] = Field(
+        None, 
+        description="Average rating of all reviews",
+        ge=1.0,
+        le=5.0
+    )
+    sentiment_counts: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Count of reviews by sentiment"
+    )
+    topic_counts: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Count of reviews by topic"
+    )
+    location_counts: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Count of reviews by location"
+    )
+
+    @field_validator('average_rating')
+    @classmethod
+    def validate_rating(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None:
+            return round(float(v), 2)
+        return None
 
 class SearchResponse(BaseModel):
     reviews: List[Review]
