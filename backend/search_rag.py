@@ -17,7 +17,7 @@ class SearchService:
     async def build_tfidf_index(self):
         """Build TF-IDF index from all reviews"""
         async with database.pool.acquire() as conn:
-            reviews = await conn.fetch('SELECT id, text FROM reviews WHERE text IS NOT NULL')
+            reviews = await conn.fetch('SELECT id,location,text FROM reviews WHERE text IS NOT NULL')
         
         self.review_texts = [review['text'] for review in reviews]
         

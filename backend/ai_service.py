@@ -38,7 +38,7 @@ class AIService:
             
             response = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama-3.1-8b-instant",  # Fast and efficient model
+                model="llama-3.3-70b-versatile",  # Fast and efficient model
                 max_tokens=10,
                 temperature=0.1
             )
@@ -100,32 +100,30 @@ class AIService:
             # Create context-aware prompt
             prompt = f"""
             You are a customer service representative for a multi-location business.
-            Generate a concise, empathetic response to this customer review.
-            
+            Your task is to write exactly ONE complete, concise reply to the customer review below.
+
             Review Details:
             - Location: {location}
             - Rating: {rating}/5
             - Sentiment: {sentiment}
             - Topic: {topic}
             - Review Text: "{safe_text}"
-            
+
             Guidelines:
-            1. Be empathetic and professional
-            2. Address the specific concern mentioned
-            3. Keep it concise (2-3 sentences max)
-            4. For negative reviews, acknowledge the issue and suggest improvement
-            5. For positive reviews, express gratitude and encourage return
-            6. Never include toxic or defensive language
-            7. Do not make promises you can't keep
-            8. Keep it natural and human-sounding
-            
-            Suggested Reply:
+            1. Length: 4-5 full sentences only.
+            2. For positive reviews: express gratitude and encourage return.
+            3. For negative reviews: acknowledge the issue and suggest improvement.
+            4. For neutral/mixed reviews: thank the customer, acknowledge both positive and less positive points, and show openness to improvement.
+            5. Never use defensive or robotic language.
+            6. Do not cut off mid-sentence. The reply must be a complete response.
+
+            Final Answer (plain text only, no bullet points, no markdown):
             """
             
             response = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="openai/gpt-oss-20b",  # High-quality model for replies
-                max_tokens=150,
+                model="llama-3.3-70b-versatile",  
+                max_tokens=500,
                 temperature=0.7,
                 stop=["\n\n"]
             )
