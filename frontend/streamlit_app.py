@@ -280,25 +280,27 @@ def show_search():
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        search_query = st.text_input("Search reviews", placeholder="Enter keywords to search...")
+        search_query = st.text_input("Search reviews", placeholder="Enter keywords to search...",key="search_query")
     
     with col2:
-        search_type = st.selectbox("Search type", ["Hybrid", "Keywords:tfidf", "Semantic:Vector"])
-    
-        if search_type == "Semantic:Vector":
-            results = client._make_request(f"/search?q={search_query}&type=Semantic:Vector")
-        elif search_type == "Keywords:tfidf":
-            results = client._make_request(f"/search?q={search_query}&type=Keywords:tfidf")
-        else:
-            results = client._make_request(f"/search?q={search_query}&type=Hybrid")
+        search_type = st.selectbox("Search type", ["hybrid", "tfidf", "vector"],key="search_type")
+
+        if search_query:
+            with st.spinner("Searching..."):
+                if search_type == "vector":
+                    results = client._make_request(f"/search?q={search_query}&type=vector")
+                elif search_type == "tfidf":
+                    results = client._make_request(f"/search?q={search_query}&type=tfidf")
+                else:
+                    results = client._make_request(f"/search?q={search_query}&type=hybrid")
         
-        if results and 'reviews' in results:
-            st.subheader(f"Search Results ({len(results['reviews'])} found)")
-            for idx, review in enumerate(results['reviews']):
+                if results and 'reviews' in results:
+                    st.subheader(f"Search Results ({len(results['reviews'])} found)")
+                    for idx, review in enumerate(results['reviews']):
                 # Added index to make each review card unique in search context and we get suggestions for each reply separately
-                display_review_card(review, context="search", index=idx)
-        else:
-            st.info("No results found")
+                        display_review_card(review, context="search", index=idx)
+                else:
+                    st.info("No results found")
 
 def show_admin():
     st.header("Admin Panel")
@@ -329,7 +331,6 @@ def show_admin():
                 st.json(health)
             else:
                 st.error("System health check failed")
-
 def display_review_card(review, context="inbox", index=0):
     """Display a review in a card format with unique keys per context"""
     # Generate unique keys for each button based on context and review
@@ -375,6 +376,51 @@ def display_review_card(review, context="inbox", index=0):
                     st.code(suggestion.get('reply', ''))
     
     st.markdown('</div>', unsafe_allow_html=True)
+# def display_review_card(review, context="inbox", index=0):
+#     """Display a review in a card format with unique keys per context"""
+#     # Generate unique keys for each button based on context and review
+#     base_key = f"{context}_{review['id']}_{index}"
+#     suggest_btn_key = f"suggest_btn_{base_key}"
+#     copy_btn_key = f"copy_btn_{base_key}"
+#     reply_area_key = f"reply_{base_key}"
+    
+#     sentiment_class = (
+#         "positive-review" if review.get('sentiment') == 'positive' 
+#         else "negative-review" if review.get('sentiment') == 'negative' 
+#         else ""
+#     )
+    
+#     st.markdown(f'<div class="review-card {sentiment_class}">', unsafe_allow_html=True)
+    
+#     col1, col2, col3 = st.columns([1, 1, 2])
+    
+#     with col1:
+#         st.write(f"**Location:** {review.get('location', 'N/A')}")
+#         st.write(f"**Rating:** {review.get('rating', 'N/A')}⭐")
+    
+#     with col2:
+#         st.write(f"**Sentiment:** {review.get('sentiment', 'N/A')}")
+#         st.write(f"**Topic:** {review.get('topic', 'N/A')}")
+    
+#     with col3:
+#         st.write(f"**Review:** {review.get('text', 'N/A')}")
+        
+#         if st.button("Suggest Reply", key=suggest_btn_key):
+#             with st.spinner("Generating reply..."):
+#                 suggestion = client.suggest_reply(review['id'])
+            
+#             if suggestion:
+#                 st.text_area(
+#                     "Suggested Reply", 
+#                     suggestion.get('reply', ''), 
+#                     height=100, 
+#                     key=reply_area_key
+#                 )
+                
+#                 if st.button("Copy to Clipboard", key=copy_btn_key):
+#                     st.code(suggestion.get('reply', ''))
+    
+#     st.markdown('</div>', unsafe_allow_html=True)
     
 def display_review_detail(review):
     """Display detailed review view"""

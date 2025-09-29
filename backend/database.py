@@ -25,9 +25,8 @@ class Database:
         await conn.execute('CREATE EXTENSION IF NOT EXISTS vector;')
         
         # Wait a moment to ensure extension is fully loaded
-        
         await conn.execute('SELECT 1')
-        
+        await register_vector(conn) #register vector type with asyncpg
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS reviews (
                 id SERIAL PRIMARY KEY,
@@ -49,8 +48,9 @@ class Database:
             CREATE INDEX IF NOT EXISTS idx_reviews_sentiment ON reviews(sentiment);
             CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating);
             CREATE INDEX IF NOT EXISTS idx_reviews_date ON reviews(date);
-            CREATE INDEX IF NOT EXISTS idx_reviews_embedding ON reviews USING ivfflat (embedding vector_cosine_ops);
-        ''')
+            CREATE INDEX IF NOT EXISTS idx_reviews_embedding ON reviews USING ivfflat (embedding vector_cosine_ops)
+                WITH (lists = 100);
+        ''') #using cosine distance for similarity search
         # creates a B-Tree indexing , used indirectly so that it makes a key value pair for faster searching, now the SQL query will not search one by one but will use the index to directly go to the location where the data is stored.
 
     async def insert_review(self, review_data: dict) -> int:

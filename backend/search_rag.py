@@ -71,20 +71,33 @@ class SearchService:
     async def vector_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """Search using vector embeddings"""
         # Generate query embedding
-        query_embedding = ai_service.get_embedding(query)
+        try:
+            query_embedding = ai_service.get_embedding(query)
         
-        async with database.pool.acquire() as conn:
-            results = await conn.fetch('''
-                SELECT *, 
-                       (1 - (embedding <=> $1)) as similarity
+            async with database.pool.acquire() as conn:
+                await conn.execute('SELECT $1::vector', query_embedding)
+            
+                results = await conn.fetch('''
+                SELECT 
+                    id, 
+                    location,
+                    rating,
+                    text,
+                    date,
+                    sentiment,
+                    topic,
+                    1 - (embedding <=> $1::vector) as similarity
                 FROM reviews 
                 WHERE embedding IS NOT NULL
-                ORDER BY embedding <=> $1
+                ORDER BY embedding <=> $1::vector
                 LIMIT $2
             ''', query_embedding, k)
-        
-        return [dict(row) for row in results if row['similarity'] > 0.5]  # Threshold for relevance
-    
+            
+            # Filter and convert to dict
+                return [dict(row) for row in results if row['similarity'] > 0.5]
+        except Exception as e:
+            logger.error(f"Error in vector search: {str(e)}")
+            return []
     async def hybrid_search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """Combine TF-IDF and vector search results"""
         tfidf_results = await self.tfidf_search(query, k)
