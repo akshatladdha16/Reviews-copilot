@@ -1,0 +1,94 @@
+@baseUrl = http://localhost:8000
+@adminKey = admin123
+@analyticsKey = analytics123
+
+### 🔍 HEALTH CHECK
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+### 📥 INGEST REVIEWS (Upload JSON file)
+# Note: Make sure you have a reviews.json file in your working directory
+POST {{baseUrl}}/ingest
+Content-Type: multipart/form-data; boundary=boundary123
+X-API-Key: {{adminKey}}
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="reviews.json"
+Content-Type: application/json
+
+< ./data/reviews.json
+--boundary123--
+### GET ALL REVIEWS (Paginated)
+GET {{baseUrl}}/reviews?page=1&page_size=10
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+### GET FILTERED REVIEWS (By Location)
+GET {{baseUrl}}/reviews?location=NYC&page=1
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+### GET FILTERED REVIEWS (By Sentiment)
+GET {{baseUrl}}/reviews?sentiment=positive&page=1
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  GET FILTERED REVIEWS (By Rating)
+GET {{baseUrl}}/reviews?rating=5&page=1
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  GET SPECIFIC REVIEW
+GET {{baseUrl}}/reviews/1
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  GET ALL UNIQUE LOCATIONS (For Filters)
+GET {{baseUrl}}/locations
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  GENERATE AI REPLY SUGGESTION
+POST {{baseUrl}}/reviews/1/suggest-reply
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  GET ANALYTICS DASHBOARD DATA
+GET {{baseUrl}}/analytics
+Content-Type: application/json
+X-API-Key: {{analyticsKey}}
+
+###  SEARCH REVIEWS - TF-IDF (Assignment Requirement)
+GET {{baseUrl}}/search?q=slow+service&k=5&search_type=tfidf
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  SEARCH REVIEWS - VECTOR (Semantic Search)
+GET {{baseUrl}}/search?q=poor+customer+service&k=5&search_type=vector
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  SEARCH REVIEWS - HYBRID (Best Results)
+GET {{baseUrl}}/search?q=delivery+late&k=5&search_type=hybrid
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  TEST ERROR - INVALID API KEY
+GET {{baseUrl}}/reviews
+Content-Type: application/json
+X-API-Key: invalid_key_123
+
+###  TEST ERROR - REVIEW NOT FOUND
+GET {{baseUrl}}/reviews/9999
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+###  TEST ERROR - EMPTY SEARCH QUERY
+GET {{baseUrl}}/search?q=
+Content-Type: application/json
+X-API-Key: {{adminKey}}
+
+### TEST ERROR - INVALID RATING FILTER
+GET {{baseUrl}}/reviews?rating=6
+Content-Type: application/json
+X-API-Key: {{adminKey}}

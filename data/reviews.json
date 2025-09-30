@@ -3,70 +3,105 @@
     "id": 1,
     "location": "NYC",
     "rating": 2,
-    "text": "Waited 40 min for pickup; staff seemed overwhelmed and uninterested in helping.",
+    "text": "Waited 40 minutes for pickup. Staff seemed overwhelmed and uninterested in helping customers.",
     "date": "2024-01-15"
   },
   {
     "id": 2,
     "location": "NYC",
     "rating": 5,
-    "text": "Quick service and super friendly at checkout! The food was amazing too.",
+    "text": "Quick service and super friendly at checkout! The food was amazing and fresh.",
     "date": "2024-01-16"
   },
   {
     "id": 3,
     "location": "SF",
     "rating": 3,
-    "text": "Food was good but order notes were completely ignored. Disappointing.",
+    "text": "Food was decent but order notes were completely ignored. Disappointing experience.",
     "date": "2024-01-17"
   },
   {
     "id": 4,
     "location": "SF",
     "rating": 1,
-    "text": "App kept crashing, couldn't place order. Very frustrating experience.",
+    "text": "Mobile app kept crashing during order process. Very frustrating and lost my patience.",
     "date": "2024-01-18"
   },
   {
     "id": 5,
     "location": "LA",
     "rating": 4,
-    "text": "Clean store, decent prices, but parking was a bit tight. Overall good.",
+    "text": "Clean store with decent prices. Parking was a bit tight but overall good experience.",
     "date": "2024-01-19"
   },
   {
     "id": 6,
     "location": "LA",
     "rating": 2,
-    "text": "Delivery was late and items were missing. Poor quality control.",
+    "text": "Delivery was 30 minutes late and two items were missing from my order.",
     "date": "2024-01-20"
   },
   {
     "id": 7,
     "location": "Chicago",
     "rating": 5,
-    "text": "Excellent service! The staff went above and beyond to help us.",
+    "text": "Excellent customer service! The staff went above and beyond to accommodate our large group.",
     "date": "2024-01-21"
   },
   {
     "id": 8,
     "location": "Miami",
     "rating": 3,
-    "text": "Average experience. Food was okay but nothing special for the price.",
+    "text": "Average experience overall. Food was okay but nothing special for the price point.",
     "date": "2024-01-22"
   },
   {
     "id": 9,
     "location": "NYC",
     "rating": 4,
-    "text": "Great atmosphere and good food. Would recommend for casual dining.",
+    "text": "Great atmosphere and good food quality. Would definitely recommend for casual dining.",
     "date": "2024-01-23"
   },
   {
     "id": 10,
     "location": "SF",
     "rating": 1,
-    "text": "Terrible customer service. Waited 1 hour for cold food. Never again.",
+    "text": "Terrible customer service. Waited over an hour for cold food. Will never return.",
     "date": "2024-01-24"
+  },
+  {
+    "id": 11,
+    "location": "LA",
+    "rating": 5,
+    "text": "Amazing flavors and generous portions. The staff was incredibly attentive and friendly.",
+    "date": "2024-01-25"
+  },
+  {
+    "id": 12,
+    "location": "Chicago",
+    "rating": 2,
+    "text": "Food was cold when it arrived and the delivery driver was rude. Very disappointing.",
+    "date": "2024-01-26"
+  },
+  {
+    "id": 13,
+    "location": "Miami",
+    "rating": 4,
+    "text": "Beautiful restaurant with excellent decor. Food was good but a bit overpriced.",
+    "date": "2024-01-27"
+  },
+  {
+    "id": 14,
+    "location": "NYC",
+    "rating": 3,
+    "text": "Average food quality. Service was slow but the staff was polite when they finally came.",
+    "date": "2024-01-28"
+  },
+  {
+    "id": 15,
+    "location": "SF",
+    "rating": 5,
+    "text": "Best meal I've had in months! Every dish was perfectly cooked and seasoned.",
+    "date": "2024-01-29"
   }
 ]
