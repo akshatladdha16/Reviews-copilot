@@ -32,7 +32,7 @@ class Review(ReviewBase):
     topic: Optional[Topic] = None
     embedding: Optional[List[float]] = None
     created_at: Optional[datetime] = None
-    
+
     @field_validator('date', mode='before')
     @classmethod
     def validate_date(cls, v):
@@ -44,6 +44,17 @@ class Review(ReviewBase):
 
     class Config:
         from_attributes = True # now pydantic allows the db model to accept the data in obbject format too not just dict. 
+    @field_validator('embedding', mode='before')
+    @classmethod
+    def validate_embedding(cls, v):
+        if isinstance(v, str):
+            try:
+                # Converting string representation to list of floats
+                embedding_str = v.strip('[]')
+                return [float(x.strip()) for x in embedding_str.split(',') if x.strip()]
+            except (ValueError, AttributeError):
+                return None
+        return v
 
 class ReplySuggestion(BaseModel):
     reply: str

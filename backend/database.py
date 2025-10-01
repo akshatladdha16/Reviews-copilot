@@ -24,8 +24,6 @@ class Database:
          # Create pgvector extension first
         await conn.execute('CREATE EXTENSION IF NOT EXISTS vector;')
         
-        # Wait a moment to ensure extension is fully loaded
-        await conn.execute('SELECT 1')
         await register_vector(conn) #register vector type with asyncpg
         await conn.execute('''
             CREATE TABLE IF NOT EXISTS reviews (

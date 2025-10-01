@@ -303,30 +303,41 @@ def show_analytics():
 def show_search():
     st.header("Advanced Search")
     
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        search_query = st.text_input("Search reviews", placeholder="Enter keywords to search...",key="search_query")
-    
-    with col2:
-        search_type = st.selectbox("Search type", ["hybrid", "tfidf", "vector"],key="search_type")
-
-        if search_query:
-            with st.spinner("Searching..."):
-                if search_type == "vector":
-                    results = client._make_request(f"/search?q={search_query}&type=vector")
-                elif search_type == "tfidf":
-                    results = client._make_request(f"/search?q={search_query}&type=tfidf")
-                else:
-                    results = client._make_request(f"/search?q={search_query}&type=hybrid")
+    # Search section
+    search_container = st.container()
+    with search_container:
+        col1, col2 = st.columns([3, 1])
         
-                if results and 'reviews' in results:
-                    st.subheader(f"Search Results ({len(results['reviews'])} found)")
-                    for idx, review in enumerate(results['reviews']):
-                # Added index to make each review card unique in search context and we get suggestions for each reply separately
-                        display_review_card(review, context="search", index=idx)
-                else:
-                    st.info("No results found")
+        with col1:
+            search_query = st.text_input(
+                "Search reviews", 
+                placeholder="Enter keywords to search...",
+                key="search_query"
+            )
+        
+        with col2:
+            search_type = st.selectbox(
+                "Search type", 
+                ["hybrid", "tfidf", "vector"],
+                key="search_type"
+            )
+
+    # Results section immediately below search
+    if search_query:
+        with st.spinner("Searching..."):
+            if search_type == "vector":
+                results = client._make_request(f"/search?q={search_query}&type=vector")
+            elif search_type == "tfidf":
+                results = client._make_request(f"/search?q={search_query}&type=tfidf")
+            else:
+                results = client._make_request(f"/search?q={search_query}&type=hybrid")
+    
+            if results and 'reviews' in results:
+                st.subheader(f"Search Results ({len(results['reviews'])} found)")
+                for idx, review in enumerate(results['reviews']):
+                    display_review_card(review, context="search", index=idx)
+            else:
+                st.info("No results found")
 
 def show_admin():
     st.header("Admin Panel")
