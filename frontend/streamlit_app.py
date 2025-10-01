@@ -6,6 +6,12 @@ import plotly.graph_objects as go
 import os
 from dotenv import load_dotenv
 load_dotenv() #streamlit takes secrets not env , need to define them in streamlit secrets. 
+import streamlit as st
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuration
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
@@ -135,9 +141,9 @@ def show_dashboard():
     st.header("Dashboard Overview")
     
     # Quick stats
-    col1, col2, col3, col4 = st.columns(4)
+    analytics = client._make_request("/analytics") 
+    col1, col2, col3,col4 = st.columns(4)
     
-    analytics = client.get_analytics()
     if analytics:
         with col1:
             total_reviews = sum(analytics.get('location_counts', {}).values())
@@ -152,8 +158,12 @@ def show_dashboard():
             st.metric("Negative Reviews", negative_reviews)
         
         with col4:
-            avg_rating = calculate_average_rating(analytics.get('rating_distribution', {}))
-            st.metric("Average Rating", f"{avg_rating:.1f}/5")
+            avg_rating = analytics.get('average_rating')
+            if avg_rating is not None:
+                formatted_rating = f"{avg_rating} ⭐"
+                st.metric("Average Rating", formatted_rating)
+            else:
+                st.metric("Average Rating", "N/A")
     
     # Recent reviews
     st.subheader("Recent Reviews")
@@ -230,7 +240,7 @@ def show_analytics():
         avg_rating = analytics.get('average_rating')
         if avg_rating is not None:
             # Round to 1 decimal place and add star emoji
-            formatted_rating = f"{float(avg_rating):.1f} ⭐"
+            formatted_rating = f"{avg_rating} ⭐"
             st.metric("Average Rating", formatted_rating)
         else:
             st.metric("Average Rating", "N/A")
@@ -289,68 +299,6 @@ def show_analytics():
             yaxis_title="Count"
         )
         st.plotly_chart(fig, use_container_width=True)
-# def show_analytics():
-#     st.header("Analytics Dashboard")
-    
-#     analytics = client.get_analytics()
-#     if not analytics:
-#         st.error("Failed to load analytics data")
-#         return
-    
-#     # Create tabs for different analytics views
-#     tab1, tab2, tab3, tab4 = st.tabs(["Sentiment", "Topics", "Locations", "Ratings"])
-    
-#     with tab1:
-#         st.subheader("Sentiment Analysis")
-#         sentiment_data = analytics.get('sentiment_counts', {})
-#         if sentiment_data:
-#             fig = px.pie(
-#                 values=list(sentiment_data.values()),
-#                 names=list(sentiment_data.keys()),
-#                 title="Review Sentiment Distribution"
-#             )
-#             st.plotly_chart(fig, use_container_width=True)
-#         else:
-#             st.info("No sentiment data available")
-    
-#     with tab2:
-#         st.subheader("Topic Analysis")
-#         topic_data = analytics.get('topic_counts', {})
-#         if topic_data:
-#             fig = px.bar(
-#                 x=list(topic_data.keys()),
-#                 y=list(topic_data.values()),
-#                 title="Review Topics Distribution"
-#             )
-#             st.plotly_chart(fig, use_container_width=True)
-#         else:
-#             st.info("No topic data available")
-    
-#     with tab3:
-#         st.subheader("Location Analysis")
-#         location_data = analytics.get('location_counts', {})
-#         if location_data:
-#             fig = px.bar(
-#                 x=list(location_data.keys()),
-#                 y=list(location_data.values()),
-#                 title="Reviews by Location"
-#             )
-#             st.plotly_chart(fig, use_container_width=True)
-#         else:
-#             st.info("No location data available")
-    
-#     with tab4:
-#         st.subheader("Rating Distribution")
-#         rating_data = analytics.get('rating_distribution', {})
-#         if rating_data:
-#             fig = px.bar(
-#                 x=list(rating_data.keys()),
-#                 y=list(rating_data.values()),
-#                 title="Rating Distribution"
-#             )
-#             st.plotly_chart(fig, use_container_width=True)
-#         else:
-#             st.info("No rating data available")
 
 def show_search():
     st.header("Advanced Search")
@@ -409,21 +357,20 @@ def show_admin():
                 st.json(health)
             else:
                 st.error("System health check failed")
+
 def display_review_card(review, context="inbox", index=0):
-    """Display a review in a card format with unique keys per context"""
-    # Generate unique keys for each button based on context and review
+    """Display a review in a card format with proper state management"""
+    # Generate unique keys for components
     base_key = f"{context}_{review['id']}_{index}"
-    suggest_btn_key = f"suggest_btn_{base_key}"
-    copy_btn_key = f"copy_btn_{base_key}"
-    reply_area_key = f"reply_{base_key}"
-    
-    sentiment_class = (
-        "positive-review" if review.get('sentiment') == 'positive' 
-        else "negative-review" if review.get('sentiment') == 'negative' 
-        else ""
-    )
-    
-    st.markdown(f'<div class="review-card {sentiment_class}">', unsafe_allow_html=True)
+    suggest_key = f"suggest_{base_key}"
+    reply_key = f"reply_{base_key}"
+
+    # Initialize session state for reply storage
+    if reply_key not in st.session_state:
+        st.session_state[reply_key] = {"text": "", "generated": False}
+
+    # Display review card
+    st.markdown(f"""<div class="review-card">""", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 1, 2])
     
@@ -438,67 +385,35 @@ def display_review_card(review, context="inbox", index=0):
     with col3:
         st.write(f"**Review:** {review.get('text', 'N/A')}")
         
-        if st.button("Suggest Reply", key=suggest_btn_key):
-            with st.spinner("Generating reply..."):
-                suggestion = client.suggest_reply(review['id'])
-            
-            if suggestion:
-                st.text_area(
-                    "Suggested Reply", 
-                    suggestion.get('reply', ''), 
-                    height=100, 
-                    key=reply_area_key
-                )
-                
-                if st.button("Copy to Clipboard", key=copy_btn_key):
-                    st.code(suggestion.get('reply', ''))
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-# def display_review_card(review, context="inbox", index=0):
-#     """Display a review in a card format with unique keys per context"""
-#     # Generate unique keys for each button based on context and review
-#     base_key = f"{context}_{review['id']}_{index}"
-#     suggest_btn_key = f"suggest_btn_{base_key}"
-#     copy_btn_key = f"copy_btn_{base_key}"
-#     reply_area_key = f"reply_{base_key}"
-    
-#     sentiment_class = (
-#         "positive-review" if review.get('sentiment') == 'positive' 
-#         else "negative-review" if review.get('sentiment') == 'negative' 
-#         else ""
-#     )
-    
-#     st.markdown(f'<div class="review-card {sentiment_class}">', unsafe_allow_html=True)
-    
-#     col1, col2, col3 = st.columns([1, 1, 2])
-    
-#     with col1:
-#         st.write(f"**Location:** {review.get('location', 'N/A')}")
-#         st.write(f"**Rating:** {review.get('rating', 'N/A')}⭐")
-    
-#     with col2:
-#         st.write(f"**Sentiment:** {review.get('sentiment', 'N/A')}")
-#         st.write(f"**Topic:** {review.get('topic', 'N/A')}")
-    
-#     with col3:
-#         st.write(f"**Review:** {review.get('text', 'N/A')}")
+        # Generate reply button
+        if st.button("Generate Reply", key=suggest_key):
+            try:
+                with st.spinner("Generating reply..."):
+                    suggestion = client.suggest_reply(review['id'])
+                    if suggestion and 'reply' in suggestion:
+                        st.session_state[reply_key]["text"] = suggestion['reply']
+                        st.session_state[reply_key]["generated"] = True
+                        st.rerun()
+            except Exception as e:
+                st.error(f"Error generating reply: {str(e)}")
+                logger.error(f"Reply generation error: {str(e)}")
         
-#         if st.button("Suggest Reply", key=suggest_btn_key):
-#             with st.spinner("Generating reply..."):
-#                 suggestion = client.suggest_reply(review['id'])
+        # Show reply if it exists in session state
+        if st.session_state[reply_key]["generated"]:
+            reply_text = st.text_area(
+                "Generated Reply",
+                value=st.session_state[reply_key]["text"],
+                height=100,
+                key=f"textarea_{reply_key}"
+            )
+        
             
-#             if suggestion:
-#                 st.text_area(
-#                     "Suggested Reply", 
-#                     suggestion.get('reply', ''), 
-#                     height=100, 
-#                     key=reply_area_key
-#                 )
-                
-#                 if st.button("Copy to Clipboard", key=copy_btn_key):
-#                     st.code(suggestion.get('reply', ''))
-    
-#     st.markdown('</div>', unsafe_allow_html=True)
+            # Copy button
+            if st.button("Copy to Clipboard", key=f"copy_{base_key}"):
+                st.code(reply_text)
+                st.success("Reply copied!")
+
+    st.markdown("</div>", unsafe_allow_html=True)
     
 def display_review_detail(review):
     """Display detailed review view"""
@@ -541,18 +456,6 @@ def display_review_detail(review):
                 st.json(suggestion.get('tags', {}))
                 st.write(f"**Reasoning:** {suggestion.get('reasoning_log', '')}")
 
-def calculate_average_rating(rating_distribution):
-    """Calculate average rating from distribution"""
-    if not rating_distribution:
-        return 0
-    
-    total = 0
-    count = 0
-    for rating, freq in rating_distribution.items():
-        total += int(rating) * freq
-        count += freq
-    
-    return total / count if count > 0 else 0
 
 if __name__ == "__main__":
     main()
